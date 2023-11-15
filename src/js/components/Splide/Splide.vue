@@ -10,7 +10,7 @@
 
 <script lang="ts">
 import { ComponentConstructor, Options, Splide } from '@splidejs/splide';
-import { computed, defineComponent, onBeforeUnmount, onMounted, PropType, provide, Ref, ref, watch } from 'vue';
+import { computed, defineComponent, onUnmounted, onMounted, PropType, provide, Ref, ref, watch } from 'vue';
 import { EVENTS } from '../../constants/events';
 import { SPLIDE_INJECTION_KEY } from '../../constants/keys';
 import { merge } from '../../utils';
@@ -22,9 +22,9 @@ import SplideTrack from '../SplideTrack/SplideTrack.vue';
  *
  * @since 0.4.0
  */
-export default defineComponent( {
+export default defineComponent({
   name: 'Splide',
-  emits: EVENTS.map( event => `splide:${ event }` ),
+  emits: EVENTS.map(event => `splide:${event}`),
   components: { SplideTrack },
 
   props: {
@@ -33,7 +33,7 @@ export default defineComponent( {
      */
     tag: {
       default: 'div',
-      type   : String,
+      type: String,
     },
 
     /**
@@ -41,7 +41,7 @@ export default defineComponent( {
      */
     options: {
       default: {},
-      type   : Object as PropType<Options>,
+      type: Object as PropType<Options & { shouldObserveToDestroy: boolean }>,
     },
 
     /**
@@ -59,43 +59,59 @@ export default defineComponent( {
      */
     hasTrack: {
       default: true,
-      type   : Boolean,
+      type: Boolean,
     },
   },
 
-  setup( props, context ) {
+  setup(props, context) {
     const splide = ref<Splide>();
-    const root   = ref<HTMLElement>();
+    const root = ref<HTMLElement>();
 
-    onMounted( () => {
-      if ( root.value ) {
-        splide.value = new Splide( root.value, props.options );
-        bind( splide.value );
-        splide.value.mount( props.extensions, props.transition );
+    onMounted(() => {
+      if (root.value) {
+        splide.value = new Splide(root.value, props.options);
+        bind(splide.value);
+        splide.value.mount(props.extensions, props.transition);
       }
-    } );
+    });
 
-    onBeforeUnmount( () => {
-      splide.value?.destroy();
-    } );
+    onUnmounted(() => {
+      if (props.options.shouldObserveToDestroy) {
+        if (splide.value) {
+          try {
+            const observer = new MutationObserver(() => {
+              if (!document.body.contains(splide.value?.root as HTMLElement)) {
+                splide.value?.destroy();
+                observer.disconnect();
+              }
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
+          } catch (e) {
+            console.log(e);
+          }
+        }
+      } else {
+        splide.value?.destroy();
+      }
+    })
 
-    watch( () => merge( {}, props.options ), options => {
-      if ( splide.value ) {
+    watch(() => merge({}, props.options), options => {
+      if (splide.value) {
         splide.value.options = options;
       }
-    }, { deep: true } );
+    }, { deep: true });
 
-    provide<Ref<Splide | undefined>>( SPLIDE_INJECTION_KEY, splide );
+    provide<Ref<Splide | undefined>>(SPLIDE_INJECTION_KEY, splide);
 
     /**
      * Returns the current index.
      */
-    const index = computed( () => splide.value?.index || 0 );
+    const index = computed(() => splide.value?.index || 0);
 
     /**
      * Returns the latest number of slides.
      */
-    const length = computed( () => splide.value?.length || 0 );
+    const length = computed(() => splide.value?.length || 0);
 
     /**
      * Goes to the slide specified by the control.
@@ -104,8 +120,8 @@ export default defineComponent( {
      *
      * @param control - A control pattern.
      */
-    function go( control: number | string ): void {
-      splide.value?.go( control );
+    function go(control: number | string): void {
+      splide.value?.go(control);
     }
 
     /**
@@ -113,8 +129,8 @@ export default defineComponent( {
      *
      * @param target - A target to sync.
      */
-    function sync( target: Splide ): void {
-      splide.value?.sync( target );
+    function sync(target: Splide): void {
+      splide.value?.sync(target);
     }
 
     /**
@@ -124,12 +140,12 @@ export default defineComponent( {
      *
      * @param splide - A splide instance.
      */
-    function bind( splide: Splide ): void {
-      EVENTS.forEach( event => {
-        splide.on( event, ( ...args: any[] ) => {
-          context.emit( `splide:${ event }`, splide, ...args );
-        } );
-      } );
+    function bind(splide: Splide): void {
+      EVENTS.forEach(event => {
+        splide.on(event, (...args: any[]) => {
+          context.emit(`splide:${event}`, splide, ...args);
+        });
+      });
     }
 
     return {
@@ -141,5 +157,5 @@ export default defineComponent( {
       sync,
     }
   },
-} );
+});
 </script>
