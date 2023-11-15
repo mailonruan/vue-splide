@@ -41,7 +41,7 @@ export default defineComponent({
      */
     options: {
       default: {},
-      type: Object as PropType<Options & { shouldObserveToDestroy: boolean }>,
+      type: Object as PropType<Options>,
     },
 
     /**
