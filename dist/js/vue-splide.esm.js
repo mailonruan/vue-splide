@@ -1,4 +1,4 @@
-import { defineComponent, onUpdated, inject, openBlock, createElementBlock, createElementVNode, renderSlot, ref, onMounted, onBeforeUnmount, watch, provide, computed, resolveComponent, createBlock, resolveDynamicComponent, withCtx } from "vue";
+import { defineComponent, onUpdated, inject, openBlock, createElementBlock, createElementVNode, renderSlot, ref, onMounted, onUnmounted, nextTick as nextTick$1, watch, provide, computed, resolveComponent, createBlock, resolveDynamicComponent, withCtx } from "vue";
 function _defineProperties(target, props) {
   for (var i = 0; i < props.length; i++) {
     var descriptor = props[i];
@@ -19,7 +19,7 @@ function _createClass(Constructor, protoProps, staticProps) {
 }
 /*!
  * Splide.js
- * Version  : 4.1.3
+ * Version  : 4.1.4
  * License  : MIT
  * Copyright: 2022 Naotoshi Fujita
  */
@@ -2686,9 +2686,11 @@ const _sfc_main$1 = defineComponent({
         splide.value.mount(props.extensions, props.transition);
       }
     });
-    onBeforeUnmount(() => {
-      var _a;
-      (_a = splide.value) == null ? void 0 : _a.destroy();
+    onUnmounted(() => {
+      nextTick$1(() => {
+        var _a;
+        (_a = splide == null ? void 0 : splide.value) == null ? void 0 : _a.destroy();
+      });
     });
     watch(() => merge({}, props.options), (options) => {
       if (splide.value) {

@@ -21,7 +21,7 @@ function _createClass(Constructor, protoProps, staticProps) {
 }
 /*!
  * Splide.js
- * Version  : 4.1.3
+ * Version  : 4.1.4
  * License  : MIT
  * Copyright: 2022 Naotoshi Fujita
  */
@@ -2688,9 +2688,11 @@ const _sfc_main$1 = vue.defineComponent({
         splide.value.mount(props.extensions, props.transition);
       }
     });
-    vue.onBeforeUnmount(() => {
-      var _a;
-      (_a = splide.value) == null ? void 0 : _a.destroy();
+    vue.onUnmounted(() => {
+      vue.nextTick(() => {
+        var _a;
+        (_a = splide == null ? void 0 : splide.value) == null ? void 0 : _a.destroy();
+      });
     });
     vue.watch(() => merge({}, props.options), (options) => {
       if (splide.value) {
